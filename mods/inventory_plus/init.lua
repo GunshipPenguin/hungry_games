@@ -51,9 +51,11 @@ inventory_plus.set_inventory_formspec = function(player,formspec)
 	local privs = minetest.get_player_privs(player:get_player_name())
 	if privs.hg_maker then
 		-- if creative mode is on then wait a bit
-		minetest.after(0.1,function()
-			player:set_inventory_formspec(formspec)
-		end)
+		minetest.after(0.1,function(tbl)
+			if tbl.player ~= nil and tbl.player:is_player() then
+				tbl.player:set_inventory_formspec(tbl.formspec)
+			end
+		end, {player=player, formspec=formspec})
 	else
 		player:set_inventory_formspec(formspec)
 	end
@@ -202,9 +204,11 @@ minetest.register_on_joinplayer(function(player)
 		player:get_inventory():set_size("craft", 3*3)
 	end
 	local privs = minetest.get_player_privs(player:get_player_name())
-	minetest.after(1,function()
-		inventory_plus.set_inventory_formspec(player,inventory_plus.get_formspec(player, inventory_plus.default))
-	end)
+	minetest.after(1,function(player)
+		if player ~= nil and player:is_player() then
+			inventory_plus.set_inventory_formspec(player,inventory_plus.get_formspec(player, inventory_plus.default))
+		end
+	end, player)
 end)
 
 -- register_on_player_receive_fields
