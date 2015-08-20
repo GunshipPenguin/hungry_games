@@ -130,7 +130,7 @@ end
 minetest.register_abm({
     nodenames = {"glass_arena:wall_middle"},
     neighbors = {"air","default:water_source","default:water_flowing","default:lava_source","default:lava_flowing"},
-    interval = 10,
+    interval = 1,
     chance = 1,
     action = function(pos, node, active_object_count, active_object_count_wider)
         local env = minetest.env
@@ -179,135 +179,153 @@ minetest.register_abm({
     end,
 })
 
+local function wall_placeable(id)
+	local name = minetest.get_name_from_content_id(id)
+	for i,v in pairs(replace) do
+		if name == v then
+			return true
+		end
+	end
+	return not minetest.registered_nodes[name].walkable
+end
+
+local replaceables = {}
+local function should_replace(id)
+	if (not replace)
+	or #replace == 0 then
+		return true
+	end
+	if replaceables[id] ~= nil then
+		return replaceables[id]
+	end
+	local replaceable = wall_placeable(id)
+	replaceables[id] = replaceable
+	return replaceable
+end
+
+local c_wall = minetest.get_content_id("glass_arena:wall")
+local c_wall_mid = minetest.get_content_id("glass_arena:wall_middle")
+local c_wall_end = minetest.get_content_id("glass_arena:wall_end")
 
 minetest.register_on_generated(function(minp, maxp, seed)
-	local database = minetest.registered_nodes
-	local replace = replace
-	local function should_replace(pos)
-		local node = minetest.env:get_node(pos)
-		local name = node.name
-		if (not replace) or #replace == 0 then
-			return true
-		else
-			for i,v in pairs(replace) do
-				if name == v then
-					return true
-				end
-			end
-		end
-		if not database[name].walkable then
-			return true
-		else
-			return false
-		end
-	end
 	--Speed up generation by checking if this chunk needs to be proccesed.
-	if not ((minp.x > arena_size or minp.z > arena_size) or (maxp.x < -arena_size or maxp.z < -arena_size)) and
-	   not ((minp.x > -arena_size and maxp.x < arena_size) and (minp.z > -arena_size and maxp.z < arena_size)) then
+	if minp.x > arena_size
+	or minp.z > arena_size
+	or maxp.x < -arena_size
+	or maxp.z < -arena_size
+	or (
+		minp.x > -arena_size
+		and maxp.x < arena_size
+		and minp.z > -arena_size
+		and maxp.z < arena_size
+	) then
+		return
+	end
 
-			--Should make things a bit faster.
-			local env = minetest.env
-			local gen
+	local x0 = minp.x
+	local divs = maxp.x-x0
+	local z0 = minp.z
+	local y0 = minp.y
 
-			-- Assume X and Z lengths are equal
-			local divlen = 16
-			local divs = (maxp.x-minp.x);
-			local x0 = minp.x
-			local z0 = minp.z
-			local x1 = maxp.x
-			local z1 = maxp.z
-			local y0 = minp.y
+	local vm, emin, emax = minetest.get_mapgen_object("voxelmanip")
+	local data = vm:get_data()
+	local area = VoxelArea:new{MinEdge=emin, MaxEdge=emax}
 
-			--Loop through chunk.
-			for j=0,divs do
-			for i=0,divs do
-
-			local x = x0+j
-			local z = z0+i
+	--Loop through chunk.
+	for j=0,divs do
+		local z = z0+j
+		for i=0,divs do
+			local x = x0+i
 
 			--Build Wall
-			if x == arena_size and z <= arena_size and z >= -arena_size then
+			if x == arena_size
+			and z <= arena_size
+			and z >= -arena_size then
 				for y = 0,divs do
-					local pos = {x=x,y=y0+y,z=z}
-					if should_replace(pos) then
-						env:add_node(pos,{name="glass_arena:wall"})
+					local vi = area:index(x, y0+y, z)
+					if should_replace(data[vi]) then
+						data[vi] = c_wall
 					end
-					pos.x = pos.x + 1
-					if should_replace(pos) then
-						env:add_node(pos,{name="glass_arena:wall_middle"})
+
+					vi = area:index(x+1, y0+y, z)
+					if should_replace(data[vi]) then
+						data[vi] = c_wall_mid
 					end
-					pos.x = pos.x + 1
-					if should_replace(pos) then
-						env:add_node(pos,{name="glass_arena:wall_end"})
+
+					vi = area:index(x+2, y0+y, z)
+					if should_replace(data[vi]) then
+						data[vi] = c_wall_end
 					end
 				end
 			end
 
-			if z == arena_size and x <= arena_size and x >= -arena_size then
-				for y=0, (maxp.y-minp.y) do
+			if z == arena_size
+			and x <= arena_size
+			and x >= -arena_size then
+				for y = 0,divs do
+					local vi = area:index(x, y0+y, z)
+					if should_replace(data[vi]) then
+						data[vi] = c_wall
+					end
 
-					local y = y0+y
+					vi = area:index(x, y0+y, z+1)
+					if should_replace(data[vi]) then
+						data[vi] = c_wall_mid
+					end
 
-						local pos = {x=x,y=y,z=z}
-						if should_replace(pos) then
-							env:add_node(pos,{name="glass_arena:wall"})
-						end
-						pos.z = pos.z + 1
-						if should_replace(pos) then
-							env:add_node(pos,{name="glass_arena:wall_middle"})
-						end
-						pos.z = pos.z + 1
-						if should_replace(pos) then
-							env:add_node(pos,{name="glass_arena:wall_end"})
-						end
-
+					vi = area:index(x, y0+y, z+2)
+					if should_replace(data[vi]) then
+						data[vi] = c_wall_end
+					end
 				end
 			end
 
-			if x == -arena_size and z >= -arena_size and z <= arena_size then
-				for y=0, (maxp.y-minp.y) do
+			if x == -arena_size
+			and z >= -arena_size
+			and z <= arena_size then
+				for y = 0,divs do
+					local vi = area:index(x, y0+y, z)
+					if should_replace(data[vi]) then
+						data[vi] = c_wall
+					end
 
-					local y = y0+y
+					vi = area:index(x-1, y0+y, z)
+					if should_replace(data[vi]) then
+						data[vi] = c_wall_mid
+					end
 
-						local pos = {x=x,y=y,z=z}
-						if should_replace(pos) then
-							env:add_node(pos,{name="glass_arena:wall"})
-						end
-						pos.x = pos.x - 1
-						if should_replace(pos) then
-							env:add_node(pos,{name="glass_arena:wall_middle"})
-						end
-						pos.x = pos.x - 1
-						if should_replace(pos) then
-							env:add_node(pos,{name="glass_arena:wall_end"})
-						end
-
+					vi = area:index(x-2, y0+y, z)
+					if should_replace(data[vi]) then
+						data[vi] = c_wall_end
+					end
 				end
 			end
 
-			if z == -arena_size and x >= -arena_size and x <= arena_size then
-				for y=0, (maxp.y-minp.y) do
+			if z == -arena_size
+			and x >= -arena_size
+			and x <= arena_size then
+				for y = 0,divs do
+					local vi = area:index(x, y0+y, z)
+					if should_replace(data[vi]) then
+						data[vi] = c_wall
+					end
 
-					local y = y0+y
+					vi = area:index(x, y0+y, z-1)
+					if should_replace(data[vi]) then
+						data[vi] = c_wall_mid
+					end
 
-						local pos = {x=x,y=y,z=z}
-						if should_replace(pos) then
-							env:add_node(pos,{name="glass_arena:wall"})
-						end
-						pos.z = pos.z - 1
-						if should_replace(pos) then
-							env:add_node(pos,{name="glass_arena:wall_middle"})
-						end
-						pos.z = pos.z - 1
-						if should_replace(pos) then
-							env:add_node(pos,{name="glass_arena:wall_end"})
-						end
-
+					vi = area:index(x, y0+y, z-2)
+					if should_replace(data[vi]) then
+						data[vi] = c_wall_end
+					end
 				end
 			end
 
-			end
 		end
 	end
+
+	vm:set_data(data)
+	vm:write_to_map()
 end)
 
