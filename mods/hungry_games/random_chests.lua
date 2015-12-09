@@ -111,46 +111,60 @@ end
 -- Spawn chests if enabled
 if random_chests.spawn_chests then
 	minetest.register_on_generated(function(minp, maxp, seed)
-		-- Get all possible (x,z) coordinates for this chunk
-		local possible_xz_coords = {}
-		for x=minp.x,maxp.x do
-			for z=minp.z,maxp.z do
-				table.insert(possible_xz_coords, {x=x, z=z})
-			end 
+	
+		-- To not spawn chests outside the arena, modify the region defined by minp and maxp so that it does not include any nodes within the arena
+		local out_of_bounds = false
+		for _,axis in pairs({"x","y","z"}) do
+			if minp[axis] > arena.size/2 or maxp[axis] < -arena.size/2 then
+				out_of_bounds = true
+				break
+			end
+			maxp[axis] = math.min(arena.size/2, maxp[axis])
+			minp[axis] = math.max(-arena.size/2, minp[axis])
 		end
 		
-		-- Loop through possible_xz_coords, attempting to place a chest for each (x,z) coordinate until we have placed a suitable number of chests or are out of positions
-		local placed_chests = 0
-		while placed_chests < random_chests.chest_rarity and table.getn(possible_xz_coords) ~= 0 do
-			-- Pick a random x and y position within this chunk from the possible_xz_coordinates table and remove it from the table
-			local random_pos_index = table.getn(possible_xz_coords)
-			local random_pos = possible_xz_coords[math.random(table.getn(possible_xz_coords))]
-			table.remove(possible_xz_coords, random_pos_index)
-			-- Starting at maxp.y and ending at minp.y, deincrement the y value of the position and get the node there
-			for y=maxp.y,minp.y,-1 do
-				random_pos.y = y
-				local curr_node = minetest.get_node(random_pos)
-				-- If curr_node is not air and not in any of the groups in ignore_groups, increment randomPos.y by 1 and place a chest at randomPos
-				if curr_node.name ~= "air" then
-					local place_chest = true
-					for _,group in pairs(random_chests.generator_ignore_groups) do
-						if minetest.get_item_group(curr_node.name, group) ~= 0 then
-							place_chest = false
+		if not out_of_bounds then
+			-- Get all possible (x,z) coordinates for this chunk
+			local possible_xz_coords = {}
+			for x=minp.x,maxp.x do
+				for z=minp.z,maxp.z do
+					table.insert(possible_xz_coords, {x=x, z=z})
+				end 
+			end
+			
+			-- Loop through possible_xz_coords, attempting to place a chest for each (x,z) coordinate until we have placed a suitable number of chests or are out of positions
+			local placed_chests = 0
+			while placed_chests < random_chests.chest_rarity and table.getn(possible_xz_coords) ~= 0 do
+				-- Pick a random x and y position within this chunk from the possible_xz_coordinates table and remove it from the table
+				local random_pos_index = table.getn(possible_xz_coords)
+				local random_pos = possible_xz_coords[math.random(table.getn(possible_xz_coords))]
+				table.remove(possible_xz_coords, random_pos_index)
+				-- Starting at maxp.y and ending at minp.y, deincrement the y value of the position and get the node there
+				for y=maxp.y,minp.y,-1 do
+					random_pos.y = y
+					local curr_node = minetest.get_node(random_pos)
+					-- If curr_node is not air and not in any of the groups in ignore_groups, increment randomPos.y by 1 and place a chest at randomPos
+					if curr_node.name ~= "air" then
+						local place_chest = true
+						for _,group in pairs(random_chests.generator_ignore_groups) do
+							if minetest.get_item_group(curr_node.name, group) ~= 0 then
+								place_chest = false
+								break
+							end
+						end
+						-- If random_pos is a suitable position to place a chest, place a chest and increment placed_chests by 1
+						if place_chest then
+							random_pos.y = random_pos.y + 1
+							minetest.set_node(random_pos, {name="default:chest"})
+							table.insert(chests, random_pos)
+							placed_chests = placed_chests + 1
 							break
 						end
 					end
-					-- If random_pos is a suitable position to place a chest, place a chest and increment placed_chests by 1
-					if place_chest then
-						random_pos.y = random_pos.y + 1
-						minetest.set_node(random_pos, {name="default:chest"})
-						table.insert(chests, random_pos)
-						placed_chests = placed_chests + 1
-						break
-					end
 				end
 			end
+			-- Save all chests spawned in this chunk
+			save_chests()
 		end
-		-- Save all chests spawned in this chunk
-		save_chests()
 	end)
 end
