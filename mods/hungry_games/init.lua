@@ -72,75 +72,69 @@ spawning.register_spawn("lobby",{
 ---------------------------------------------------------------
 --------Random Chests Configuration (random_chests.lua)--------
 
---Whether or not to generate chests in the world. Pass false if you want to hide your own chests in the world.
-random_chests.enable()
+--Whether or not to spawn chest in the arena.
+random_chests.spawn_chests = true
 
---The size of the area in which chests are spawned. Should be set to the same or smaller then the arena size.
-random_chests.set_boundary(400)
+--How many chests to spawn per chunk (if enabled)
+random_chests.chest_rarity = 2
 
---Chest Rarity (How many chests per chunk).
-random_chests.set_rarity(3)
+--Node groups that the generator will not spawn chests on top of
+random_chests.generator_ignore_groups = {"liquid", "leafdecay", "flora", "plant"}
 
---The speed at which chests are refilled (chests per second).
-random_chests.setrefillspeed(20)
-
---One call to chest_item should be here for each item that you wish to spawn in a chest.
+--One call to random_chests.register_item should be here for each item that you wish to spawn in a chest.
 --Example: chest_item('default:torch', 4, 6) means that upon each chest refill, there is a 1 in 4 chance of spawning up to 6 torches
---The last argument is a group number/word which means if an item of that group number has already 
---been spawned then don't add any more of those group types to the chest.
-local chest_item = random_chests.register_item
-chest_item('default:apple', 4, 5)
-chest_item('default:axe_wood', 10, 1, "axe")
-chest_item('default:axe_stone', 15, 1, "axe")
-chest_item('default:axe_steel', 20, 1, "axe")
-chest_item('throwing:arrow', 4, 15)
-chest_item('throwing:arrow_fire', 12, 6)
-chest_item('throwing:bow_wood', 5, 1, "bow")
-chest_item('throwing:bow_stone', 10, 1, "bow")
-chest_item('throwing:bow_steel', 15, 1, "bow")
-chest_item('default:sword_wood', 10, 1, "sword")
-chest_item('default:sword_stone', 15, 1, "sword")
-chest_item('default:sword_steel', 20, 1, "sword")
-chest_item('default:sword_diamond', 40, 1, "sword")
-chest_item('food:bread_slice', 3, 1)
-chest_item('food:bun', 5, 1)
-chest_item('food:bread', 10, 1)
-chest_item('food:apple_juice', 6, 2)
-chest_item('food:strawberry', 6, 2)
-chest_item('food:meat_raw', 6, 2)
-chest_item('food:rainbow_juice', 30, 1)
-chest_item('food:cactus_juice', 8, 2, "odd")
-chest_item('survival_thirst:water_glass', 4, 2)
-chest_item('3d_armor:helmet_wood', 10, 1, "helmet")
-chest_item('3d_armor:helmet_steel', 30, 1, "helmet")
-chest_item('3d_armor:helmet_bronze', 20, 1, "helmet")
-chest_item('3d_armor:helmet_diamond', 50, 1, "helmet")
-chest_item('3d_armor:helmet_mithril', 40, 1, "helmet")
-chest_item('3d_armor:chestplate_wood', 10, 1, "chestplate")
-chest_item('3d_armor:chestplate_steel', 30, 1, "chestplate")
-chest_item('3d_armor:chestplate_bronze', 20, 1, "chestplate")
-chest_item('3d_armor:chestplate_mithril', 40, 1, "chestplate")
-chest_item('3d_armor:chestplate_diamond', 50, 1, "chestplate")
-chest_item('3d_armor:leggings_wood', 10, 1, "leggings")
-chest_item('3d_armor:leggings_steel', 30, 1, "leggings")
-chest_item('3d_armor:leggings_bronze', 20, 1, "leggings")
-chest_item('3d_armor:leggings_mithril', 40, 1, "leggings")
-chest_item('3d_armor:leggings_diamond', 50, 1, "leggings")
-chest_item('3d_armor:boots_wood', 10, 1, "boots")
-chest_item('3d_armor:boots_steel', 30, 1, "boots")
-chest_item('3d_armor:boots_bronze', 20, 1, "boots")
-chest_item('3d_armor:boots_mithril', 40, 1, "boots")
-chest_item('3d_armor:boots_diamond', 50, 1, "boots")
-chest_item('shields:shield_wood', 10, 1, "shield")
-chest_item('shields:shield_steel', 30, 1, "shield")
-chest_item('shields:shield_bronze', 20, 1, "shield")
-chest_item('shields:shield_diamond', 50, 1, "shield")
-chest_item('shields:shield_mithril', 40, 1, "shield")
+random_chests.register_item('default:apple', 1, 100)
+random_chests.register_item('default:axe_wood', 10, 1)
+random_chests.register_item('default:axe_stone', 15, 1)
+random_chests.register_item('default:axe_steel', 20, 1)
+random_chests.register_item('throwing:arrow', 4, 15)
+random_chests.register_item('throwing:arrow_fire', 12, 6)
+random_chests.register_item('throwing:bow_wood', 5, 1)
+random_chests.register_item('throwing:bow_stone', 10, 1)
+random_chests.register_item('throwing:bow_steel', 15, 1)
+random_chests.register_item('default:sword_wood', 10, 1)
+random_chests.register_item('default:sword_stone', 15, 1)
+random_chests.register_item('default:sword_steel', 20, 1)
+random_chests.register_item('default:sword_diamond', 40, 1)
+random_chests.register_item('food:bread_slice', 3, 1)
+random_chests.register_item('food:bun', 5, 1)
+random_chests.register_item('food:bread', 10, 1)
+random_chests.register_item('food:apple_juice', 6, 2)
+random_chests.register_item('food:strawberry', 6, 2)
+random_chests.register_item('food:meat_raw', 6, 2)
+random_chests.register_item('food:rainbow_juice', 30, 1)
+random_chests.register_item('food:cactus_juice', 8, 2)
+random_chests.register_item('survival_thirst:water_glass', 4, 2)
+random_chests.register_item('3d_armor:helmet_wood', 10, 1)
+random_chests.register_item('3d_armor:helmet_steel', 30, 1)
+random_chests.register_item('3d_armor:helmet_bronze', 20, 1)
+random_chests.register_item('3d_armor:helmet_diamond', 50, 1)
+random_chests.register_item('3d_armor:helmet_mithril', 40, 1)
+random_chests.register_item('3d_armor:chestplate_wood', 10, 1)
+random_chests.register_item('3d_armor:chestplate_steel', 30, 1)
+random_chests.register_item('3d_armor:chestplate_bronze', 20, 1)
+random_chests.register_item('3d_armor:chestplate_mithril', 40, 1)
+random_chests.register_item('3d_armor:chestplate_diamond', 50, 1)
+random_chests.register_item('3d_armor:leggings_wood', 10, 1)
+random_chests.register_item('3d_armor:leggings_steel', 30, 1)
+random_chests.register_item('3d_armor:leggings_bronze', 20, 1)
+random_chests.register_item('3d_armor:leggings_mithril', 40, 1)
+random_chests.register_item('3d_armor:leggings_diamond', 50, 1)
+random_chests.register_item('3d_armor:boots_wood', 10, 1)
+random_chests.register_item('3d_armor:boots_steel', 30, 1)
+random_chests.register_item('3d_armor:boots_bronze', 20, 1)
+random_chests.register_item('3d_armor:boots_mithril', 40, 1)
+random_chests.register_item('3d_armor:boots_diamond', 50, 1)
+random_chests.register_item('shields:shield_wood', 10, 1)
+random_chests.register_item('shields:shield_steel', 30, 1)
+random_chests.register_item('shields:shield_bronze', 20, 1)
+random_chests.register_item('shields:shield_diamond', 50, 1)
+random_chests.register_item('shields:shield_mithril', 40, 1)
 --Crafting items
-chest_item('default:stick', 8, 10)
-chest_item('default:steel_ingot', 15, 3)
-chest_item('farming:string', 7, 3)
-chest_item('food:cup', 5, 2)
+random_chests.register_item('default:stick', 8, 10)
+random_chests.register_item('default:steel_ingot', 15, 3)
+random_chests.register_item('farming:string', 7, 3)
+random_chests.register_item('food:cup', 5, 2)
 
 --END OF CONFIG OPTIONS
 dofile(minetest.get_modpath("hungry_games").."/setup.lua")
