@@ -111,16 +111,17 @@ end
 -- Spawn chests if enabled
 if random_chests.spawn_chests then
 	minetest.register_on_generated(function(minp, maxp, seed)
-	
+
 		-- To not spawn chests outside the arena, modify the region defined by minp and maxp so that it does not include any nodes within the arena
+		local minp_arena, maxp_arena = arena.get_min_max_points()
 		local out_of_bounds = false
 		for _,axis in pairs({"x","y","z"}) do
-			if minp[axis] > arena.size/2 or maxp[axis] < -arena.size/2 then
+			if minp[axis] > maxp_arena[axis] or maxp[axis] < minp_arena[axis] then
 				out_of_bounds = true
 				break
 			end
-			maxp[axis] = math.min(arena.size/2, maxp[axis])
-			minp[axis] = math.max(-arena.size/2, minp[axis])
+			maxp[axis] = math.min(maxp_arena[axis], maxp[axis])
+			minp[axis] = math.max(minp_arena[axis], minp[axis])
 		end
 		
 		if not out_of_bounds then

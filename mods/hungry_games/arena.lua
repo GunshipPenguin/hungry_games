@@ -8,6 +8,13 @@ minetest.register_node("hungry_games:arena_node", {
 	groups = {not_in_creative_inventory = 1}
 })
 
+-- Returns the maximum and minimum points in the arena
+arena.get_min_max_points = function()
+	local minp = {x=-arena.size/2, y=-arena.size/2, z=-arena.size/2}
+	local maxp = {x=arena.size/2, y=arena.size/2, z=arena.size/2}
+	return minp, maxp
+end
+
 -- Ensure that the only world generated is a cube centered around (0,0,0) with an x,y and z dimension of arena.size
 minetest.register_on_generated(function(minp, maxp, seed)
 	local c_arena = minetest.get_content_id("hungry_games:arena_node")
