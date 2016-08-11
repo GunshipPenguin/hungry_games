@@ -107,7 +107,7 @@ minetest.register_node("throwing:light", {
 	paramtype = "light",
 	sunlight_propagates = true,
 	tiles = {"throwing_empty.png"},
-	light_source = LIGHT_MAX-4,
+	light_source = default.LIGHT_MAX-4,
 	selection_box = {
 		type = "fixed",
 		fixed = {
